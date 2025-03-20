@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: container1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: container1
+  template:
+    metadata:
+      labels:
+        app: container1
+    spec:
+      containers:
+      - name: container1
+        image: us-central1-docker.pkg.dev/container-app/container-repo/container1
+        ports:
+        - containerPort: 6000
+        env:
+        - name: CONTAINER2_URL
+          value: "http://container2-service:6001"
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+      volumes:
+      - name: data-volume
+        hostPath:
+          path: /data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: container1-service
+spec:
+  selector:
+    app: container1
+  ports:
+    - protocol: TCP
+      port: 6000
+      targetPort: 6000
+  type: LoadBalancer
